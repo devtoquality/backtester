@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from backtester import run_backtest
+#from backtester import run_backtest
 
 # --- UI CONFIG ---
 st.set_page_config(page_title="CryptoStrat Pro", layout="wide")
@@ -40,6 +40,25 @@ if st.button("Run Strategy"):
 
     if stress_test:
         st.error("Stress Test Result: Strategy lost 8% during the FTX crash.")
+
+class SmaCross(Strategy):
+    n1 = 10
+    n2 = 20
+
+    def init(self):
+        self.sma1 = self.I(SMA, self.data.Close, self.n1)
+        self.sma2 = self.I(SMA, self.data.Close, self.n2)
+
+    def next(self):
+        if crossover(self.sma1, self.sma2):
+            self.buy()
+        elif crossover(self.sma2, self.sma1):
+            self.position.close()
+
+def run_backtest(data):
+    bt = Backtest(data, SmaCross, cash=10000, commission=.002)
+    stats = bt.run()
+    return stats, bt
 
 # Inject Ads
 show_ads(tier)
